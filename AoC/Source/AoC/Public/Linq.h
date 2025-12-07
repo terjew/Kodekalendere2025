@@ -28,17 +28,26 @@ namespace UnrealLinq {
 		return Out;
 	}
 
-	template <class _TIn,
-		class _Fn,
-		class _TOut = typename std::decay<decltype(std::declval<_Fn>()(std::declval<_TIn>()))>::type
-	>
+	template <class _TIn>
 	inline TArray<_TIn> Skip(const TArray<_TIn>& From, size_t SkipNum) {
-		TArray<_TOut> Out;
+		TArray<_TIn> Out;
 		size_t NumElementsToCopy = From.Num() > SkipNum ? From.Num() - SkipNum : 0;
 		Out.SetNum(NumElementsToCopy);
 		for (int32 i = 0; i < NumElementsToCopy; ++i)
 		{
 			Out[i] = From[SkipNum + i];
+		}
+		return Out;
+	}
+
+	template <class _TIn>
+	inline TArray<_TIn> Take(const TArray<_TIn>& From, size_t TakeNum) {
+		TArray<_TIn> Out;
+		size_t NumElementsToCopy = From.Num() >= TakeNum ? TakeNum : From.Num();
+		Out.SetNum(NumElementsToCopy);
+		for (int32 i = 0; i < NumElementsToCopy; ++i)
+		{
+			Out[i] = From[i];
 		}
 		return Out;
 	}

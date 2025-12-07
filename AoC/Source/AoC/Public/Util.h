@@ -23,11 +23,11 @@ namespace Util
 		return FString::Printf(TEXT("%lld"), Number);
 	}
 
-	inline std::tuple<int64, int64> StringToRange(const FString& Str)
+	inline std::pair<int64, int64> StringToRange(const FString& Str)
 	{
 		FString Left, Right;
 		Str.Split(TEXT("-"), &Left, &Right);
-		return std::make_tuple(FCString::Atoi64(*Left), FCString::Atoi64(*Right));
+		return std::make_pair(FCString::Atoi64(*Left), FCString::Atoi64(*Right));
 	}
 
 	inline FString FileAsString(const FString& LocalPath)

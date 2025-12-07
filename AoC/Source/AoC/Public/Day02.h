@@ -22,7 +22,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	TArray<std::tuple<int64, int64>> Ranges; 
+	TArray<std::pair<int64, int64>> Ranges; 
 	
 	int64 SolvePart1();
 	int64 SolvePart2();
