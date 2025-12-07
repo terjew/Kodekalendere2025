@@ -1,10 +1,9 @@
 #include "Day04.h"
 #include "Util.h"
+#include "Linq.h"
 
 ADay04::ADay04()
 {
-	PrimaryActorTick.bCanEverTick = true;
-
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(TEXT("/Engine/BasicShapes/Cube"));
 	CubeMesh = CubeMeshAsset.Object;
 
@@ -75,13 +74,12 @@ void ADay04::BeginPlay()
 {
 	Super::BeginPlay();
 	auto Lines = Util::FileAsLines(TEXT("Day04/input.txt"));
-	Width = Lines[0].TrimEnd().Len();
+	Width = Lines[0].Len();
 	Height = Lines.Num();
 
-	Util::selectInto(Lines, Data, [](const FString& line) {
-		return line.TrimEnd().GetCharArray();
+	Data = UnrealLinq::Select(Lines, [](const FString& Line) {
+		return Line.GetCharArray();
 	});
-
 
 	Cubes.Empty(Width * Height);
 	auto root = GetRootComponent();
@@ -123,8 +121,4 @@ void ADay04::Step()
 	Part2 += SolvePart1();
 }
 
-void ADay04::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
 

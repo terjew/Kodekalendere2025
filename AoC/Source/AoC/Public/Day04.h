@@ -13,8 +13,6 @@ class AOC_API ADay04 : public AActor
 public:	
 	ADay04();
 
-	virtual void Tick(float DeltaTime) override;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int64 Part1;
 

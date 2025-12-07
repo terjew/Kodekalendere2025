@@ -1,37 +1,37 @@
 #include "Day02.h"
 #include "Util.h"
+#include "Linq.h"
 
 ADay02::ADay02()
 {
-	PrimaryActorTick.bCanEverTick = true;
 }
 
-bool IsInvalid(int64 number)
+bool IsInvalid(int64 Number)
 {
-	FString numStr = FString::Printf(TEXT("%lld"), number);
+	FString numStr = FString::Printf(TEXT("%lld"), Number);
 	int len = numStr.Len();
 	if (len % 2 != 0) return false;
 	return (numStr.Left(len / 2) == numStr.Right(len / 2));
 }
 
-bool IsInvalidWithCount(FString numStr, int count)
+bool IsInvalidWithCount(FString NumStr, int Count)
 {
-	int len = numStr.Len();
-	if (len % count != 0) return false;
+	int len = NumStr.Len();
+	if (len % Count != 0) return false;
 
-	int segmentLen = len / count;
-	FString first = numStr.Left(segmentLen);
-	for (int i = 1; i < count; i++) {
-		if (numStr.Mid(i * segmentLen, segmentLen) != first) {
+	int segmentLen = len / Count;
+	FString first = NumStr.Left(segmentLen);
+	for (int i = 1; i < Count; i++) {
+		if (NumStr.Mid(i * segmentLen, segmentLen) != first) {
 			return false;
 		}
 	}
 	return true;
 }
 
-bool IsInvalidNewRule(int64 number)
+bool IsInvalidNewRule(int64 Number)
 {
-	FString numStr = FString::Printf(TEXT("%lld"), number);
+	FString numStr = FString::Printf(TEXT("%lld"), Number);
 	int len = numStr.Len();
 	for (int segmentCount = 2; segmentCount <= len; segmentCount ++) {
 		if (IsInvalidWithCount(numStr, segmentCount)) {
@@ -76,18 +76,10 @@ void ADay02::BeginPlay()
 	TArray<FString> Segments;
 	Input.ParseIntoArray(Segments, TEXT(","), true);
 
-	Util::selectInto(Segments, Ranges, [](const FString& segment) {
-		FString Left, Right;
-		segment.Split(TEXT("-"), &Left, &Right);
-		return std::make_tuple(FCString::Atoi64(*Left), FCString::Atoi64(*Right));
-	});
+	Ranges = UnrealLinq::Select(Segments, Util::StringToRange);
 
 	Part1 = SolvePart1();
 	Part2 = SolvePart2();
 }
 
-void ADay02::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
 

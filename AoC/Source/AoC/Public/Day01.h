@@ -11,7 +11,6 @@ class AOC_API ADay01 : public AActor
 	
 public:	
 	ADay01();
-	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<int32> Rotations;

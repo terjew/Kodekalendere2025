@@ -1,9 +1,9 @@
 #include "Day01.h"
 #include "Util.h"
+#include "Linq.h"
 
 ADay01::ADay01()
 {
-	PrimaryActorTick.bCanEverTick = true;
 }
 
 int64 ADay01::SolvePart1()
@@ -53,7 +53,7 @@ void ADay01::BeginPlay()
 	Super::BeginPlay();
 	TArray<FString> Lines = Util::FileAsLines(TEXT("Day01/input.txt"));
 
-	Util::selectInto(Lines, Rotations, [](const FString& line) {
+	Rotations = UnrealLinq::Select(Lines, [](const FString& line) {
 		auto firstChar = line.Left(1);
 		int sign = (firstChar == TEXT("L")) ? -1 : 1;
 		auto rest = line.RightChop(1);
@@ -64,8 +64,4 @@ void ADay01::BeginPlay()
 	Part2 = SolvePart2();
 }
 
-void ADay01::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
 
