@@ -3,10 +3,13 @@
 #pragma once
 #include <type_traits>
 #include "CoreMinimal.h"
+#include <functional>
+#include <numeric>
 
 namespace UnrealLinq {
 
-	template <class _TIn, 
+	template <
+		class _TIn, 
 		class _Fn,
 		class _TOut = typename std::decay<decltype(std::declval<_Fn>()(std::declval<_TIn>()))>::type
 	>
@@ -17,15 +20,13 @@ namespace UnrealLinq {
 		return Out;
 	}
 
-	template <class _Fn,
-		class _TOut = typename std::decay<decltype(std::declval<_Fn>()(std::declval<TCHAR>()))>::type
+	template <
+		class _TIn,
+		class _Fn,
+		class _TOut
 	>
-	inline TArray<_TOut> SelectString(const FString& From, _Fn _Func) {
-		TArray<_TOut> Out;
-		Out.SetNum(From.Len());
-		auto Data = From.GetCharArray().GetData();
-		std::transform(Data, Data + From.Len(), Out.GetData(), _Func);
-		return Out;
+	inline _TOut Aggregate(const TArray<_TIn>& From, _TOut start, _Fn _Func) {
+		return std::accumulate(From.GetData(), From.GetData() + From.Num(), start, _Func);
 	}
 
 	template <class _TIn>

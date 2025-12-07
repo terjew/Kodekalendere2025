@@ -39,7 +39,7 @@ void ADay03::BeginPlay()
 	auto Lines = Util::FileAsLines(TEXT("Day03/input.txt"));
 
 	Ranges = UnrealLinq::Select(Lines, [](const FString& Line) {
-		return UnrealLinq::SelectString(Line, Util::CharToInt);
+		return UnrealLinq::Select(Util::StringToCharArray(Line), Util::CharToInt);
 	});
 
 	Part1 = SolvePart1();

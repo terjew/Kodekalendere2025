@@ -30,6 +30,24 @@ namespace Util
 		return std::make_pair(FCString::Atoi64(*Left), FCString::Atoi64(*Right));
 	}
 
+	inline TArray<TCHAR> StringToCharArray(const FString& Str)
+	{
+		TArray<TCHAR> Out;
+		Out.SetNum(Str.Len());
+		FMemory::Memcpy(Out.GetData(), Str.GetCharArray().GetData(), Out.Num());
+		return Out;
+	}
+
+	inline int64 Add(int64 a, int64 b)
+	{
+		return a + b;
+	}
+
+	inline int64 Mul(int64 a, int64 b)
+	{
+		return a * b;
+	}
+
 	inline FString FileAsString(const FString& LocalPath)
 	{
 		const FString FilePath = FPaths::ProjectContentDir() + LocalPath;
