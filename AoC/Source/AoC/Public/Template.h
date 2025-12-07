@@ -15,7 +15,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	virtual FString DayName() const override { return "DayTemplate"; }
+	virtual FString DayName() const override { return "Template"; }
 	virtual int64 SolvePart1() override;
 	virtual int64 SolvePart2() override;
 };
