@@ -8,17 +8,17 @@
 
 namespace Util
 {
-	static int64 StringToInt64(const FString& Str)
+	inline int64 StringToInt64(const FString& Str)
 	{
 		return FCString::Atoi64(*Str);
 	}
 
-	static FString Int64ToString(int64 Number)
+	inline FString Int64ToString(int64 Number)
 	{
 		return FString::Printf(TEXT("%lld"), Number);
 	}
 
-	static FString FileAsString(const FString& LocalPath)
+	inline FString FileAsString(const FString& LocalPath)
 	{
 		const FString FilePath = FPaths::ProjectContentDir() + LocalPath;
 		FString FileContent;
@@ -29,7 +29,7 @@ namespace Util
 		return FileContent;
 	}
 
-	static TArray<FString> FileAsLines(const FString& LocalPath)
+	inline TArray<FString> FileAsLines(const FString& LocalPath)
 	{
 		FString FileContent = FileAsString(LocalPath);
 		TArray<FString> Lines;
@@ -39,32 +39,32 @@ namespace Util
 	}
 
 	template <class _TIn, class _TOut, class _Fn>
-	static void selectInto(const TArray<_TIn> From, TArray<_TOut> & To, _Fn _Func) {
+	inline void selectInto(const TArray<_TIn> From, TArray<_TOut> & To, _Fn _Func) {
 		To.SetNum(From.Num());
 		std::transform(From.GetData(), From.GetData() + From.Num(), To.GetData(), _Func);
 	}
 
 
 	template <class _TIn, class _TOut, class _Fn>
-	static void selectInto(const _TIn * FromPtr, size_t FromSize, TArray<_TOut> & To, _Fn _Func) {
+	inline void selectInto(const _TIn * FromPtr, size_t FromSize, TArray<_TOut> & To, _Fn _Func) {
 		To.SetNum(FromSize);
 		std::transform(FromPtr, FromPtr + FromSize, To.GetData(), _Func);
 	}
 
 	template <class _TIn, class _TOut, class _Fn>
-	static TArray<_TOut> select(const TArray<_TIn> From, _Fn _Func) {
+	inline TArray<_TOut> select(const TArray<_TIn> From, _Fn _Func) {
 		TArray<_TOut> To;
 		select(From, To, _Func);
 		return To;
 	}
 
 	template <class _TIn>
-	static size_t maxIndex(const TArray<_TIn> From) {
+	inline size_t maxIndex(const TArray<_TIn> From) {
 		return std::max_element(From.GetData(), From.GetData() + From.Num()) - From.GetData();
 	}
 
 	template <class _TIn>
-	static size_t maxIndex(const TArray<_TIn> From, size_t startIndex, size_t endIndex) {
+	inline size_t maxIndex(const TArray<_TIn> From, size_t startIndex, size_t endIndex) {
 		return std::max_element(From.GetData() + startIndex, From.GetData() + endIndex) - From.GetData();
 	}
 

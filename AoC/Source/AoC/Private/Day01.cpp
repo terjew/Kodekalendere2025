@@ -1,19 +1,12 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Day01.h"
-#include "Misc/FileHelper.h"
-#include "HAL/PlatformFileManager.h" // Needed for FPlatformFileManager
+#include "Util.h"
 
-// Sets default values
 ADay01::ADay01()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
-int SolvePart1(TArray<int32> Rotations)
+int64 ADay01::SolvePart1()
 {
 	int count = 0;
 	int cur = 50;
@@ -27,7 +20,7 @@ int SolvePart1(TArray<int32> Rotations)
 	return count;
 }
 
-int SolvePart2(TArray<int32> Rotations)
+int64 ADay01::SolvePart2()
 {
 	int count = 0;
 	int cur = 50;
@@ -55,44 +48,24 @@ int SolvePart2(TArray<int32> Rotations)
 	return count;
 }
 
-// Called when the game starts or when spawned
 void ADay01::BeginPlay()
 {
 	Super::BeginPlay();
-	FString FilePath = FPaths::ProjectContentDir() + TEXT("Day01/input.txt");
-	FString FileContent;
-	if (FFileHelper::LoadFileToString(FileContent, *FilePath))
-	{
-		// File content successfully loaded into FileContent FString
-		UE_LOG(LogTemp, Warning, TEXT("File content: %s"), *FileContent);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to load file: %s"), *FilePath);
-	}
+	TArray<FString> Lines = Util::FileAsLines(TEXT("Day01/input.txt"));
 
-	TArray<FString> Lines;
-	FString Delimiter = TEXT("\n");
-	FileContent.ParseIntoArray(Lines, *Delimiter, true);
+	Util::selectInto(Lines, Rotations, [](const FString& line) {
+		auto firstChar = line.Left(1);
+		int sign = (firstChar == TEXT("L")) ? -1 : 1;
+		auto rest = line.RightChop(1);
+		return sign * FCString::Atoi(*rest);
+	});
 
-	Rotations.SetNum(Lines.Num());
-	std::transform(Lines.GetData(), Lines.GetData() + Lines.Num(), Rotations.GetData(), 
-		[](FString& line)
-		{
-			auto firstChar = line.Left(1);
-			int sign = (firstChar == TEXT("L")) ? -1 : 1;
-			auto rest = line.RightChop(1);
-			return sign * FCString::Atoi(*rest);
-		});
-
-	Part1 = SolvePart1(Rotations);
-	Part2 = SolvePart2(Rotations);
+	Part1 = SolvePart1();
+	Part2 = SolvePart2();
 }
 
-// Called every frame
 void ADay01::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 

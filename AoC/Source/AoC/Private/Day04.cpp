@@ -1,5 +1,4 @@
 #include "Day04.h"
-
 #include "Util.h"
 
 ADay04::ADay04()
@@ -106,7 +105,7 @@ void ADay04::BeginPlay()
 
 	Part1 = SolvePart1();
 	Part2 = Part1;
-	GetWorldTimerManager().SetTimer(MyTimerHandle, this, &ADay04::Step, 0.2f, true, 3.0f);
+	GetWorldTimerManager().SetTimer(MyTimerHandle, this, &ADay04::Step, 0.05f, true, 3.0f);
 }
 
 void ADay04::Step()

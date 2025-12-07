@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -13,8 +11,9 @@ class AOC_API ADay04 : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	ADay04();
+
+	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int64 Part1;
@@ -28,24 +27,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int64 Height;
 
-	TArray<UStaticMeshComponent*> Cubes;
-
-	TArray<TArray<TCHAR>> Data;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UMaterialInterface* AccessibleMaterial;
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 private:
+	TArray<UStaticMeshComponent*> Cubes;
+	TArray<TArray<TCHAR>> Data;	
 	UStaticMesh* CubeMesh;
 	FTimerHandle MyTimerHandle;
+
 	int64 SolvePart1();
 	int64 SolvePart2();
 	void Step();

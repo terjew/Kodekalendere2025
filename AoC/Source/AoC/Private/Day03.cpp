@@ -1,5 +1,4 @@
 #include "Day03.h"
-
 #include "Util.h"
 
 ADay03::ADay03()
@@ -7,10 +6,10 @@ ADay03::ADay03()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-int64 SolvePart1(TArray<TArray<int>> Banks)
+int64 ADay03::SolvePart1()
 {
 	int64 sum = 0;
-	for (auto & bank : Banks) {
+	for (auto & bank : Ranges) {
 		auto firstDigitIndex = Util::maxIndex(bank, 0, bank.Num() - 1);
 		auto secondDigitIndex = Util::maxIndex(bank, firstDigitIndex + 1, bank.Num());
 		sum += bank[firstDigitIndex] * 10 + bank[secondDigitIndex];
@@ -18,10 +17,10 @@ int64 SolvePart1(TArray<TArray<int>> Banks)
 	return sum;
 }
 
-int64 SolvePart2(TArray<TArray<int>> Banks)
+int64 ADay03::SolvePart2()
 {
 	int64 sum = 0;
-	for (auto& bank : Banks) {
+	for (auto& bank : Ranges) {
 		size_t currentIndex = -1;
 		int64 banksum = 0;
 		for (int i = 11; i >= 0; i--) {
@@ -38,7 +37,6 @@ void ADay03::BeginPlay()
 	Super::BeginPlay();
 	auto Lines = Util::FileAsLines(TEXT("Day03/input.txt"));
 
-	TArray<TArray<int>> Ranges;
 	Util::selectInto(Lines, Ranges, [](const FString& line) {
 		FString trimmed = line.TrimEnd();
 		TArray<int> Bank;
@@ -48,13 +46,12 @@ void ADay03::BeginPlay()
 		return Bank;
 	});
 
-	Part1 = SolvePart1(Ranges);
-	Part2 = SolvePart2(Ranges);
+	Part1 = SolvePart1();
+	Part2 = SolvePart2();
 }
 
 void ADay03::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 

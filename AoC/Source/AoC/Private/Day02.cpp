@@ -1,11 +1,9 @@
 #include "Day02.h"
-#include "Misc/FileHelper.h"
-#include "HAL/PlatformFileManager.h"
+#include "Util.h"
 
 ADay02::ADay02()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
 bool IsInvalid(int64 number)
@@ -43,7 +41,7 @@ bool IsInvalidNewRule(int64 number)
 	return false;
 }
 
-int64 SolvePart1(TArray<std::tuple<int64, int64>> Ranges)
+int64 ADay02::SolvePart1()
 {
 	int64 sum = 0;
 	for (auto& [start, end] : Ranges) {
@@ -56,7 +54,7 @@ int64 SolvePart1(TArray<std::tuple<int64, int64>> Ranges)
 	return sum;
 }
 
-int64 SolvePart2(TArray<std::tuple<int64, int64>> Ranges)
+int64 ADay02::SolvePart2()
 {
 	int64 sum = 0;
 	for (auto& [start, end] : Ranges) {
@@ -69,38 +67,27 @@ int64 SolvePart2(TArray<std::tuple<int64, int64>> Ranges)
 	return sum;
 }
 
-// Called when the game starts or when spawned
 void ADay02::BeginPlay()
 {
 	Super::BeginPlay();
-	FString FilePath = FPaths::ProjectContentDir() + TEXT("Day02/input.txt");
-	FString FileContent;
-	if (!FFileHelper::LoadFileToString(FileContent, *FilePath))
-	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to load file: %s"), *FilePath);
-	}
+
+	auto Input = Util::FileAsString(TEXT("Day02/input.txt"));
 
 	TArray<FString> Segments;
-	FString Delimiter = TEXT(",");
-	FileContent.ParseIntoArray(Segments, *Delimiter, true);
+	Input.ParseIntoArray(Segments, TEXT(","), true);
 
-	TArray<std::tuple<int64, int64>> Ranges;
-	Ranges.SetNum(Segments.Num());
-	std::transform(Segments.GetData(), Segments.GetData() + Segments.Num(), Ranges.GetData(),
-		[](FString& segment)
-		{
-			FString Left, Right;
-			segment.Split(TEXT("-"), &Left, &Right);
-			return std::make_tuple(FCString::Atoi64(*Left), FCString::Atoi64(*Right));
-		});
+	Util::selectInto(Segments, Ranges, [](const FString& segment) {
+		FString Left, Right;
+		segment.Split(TEXT("-"), &Left, &Right);
+		return std::make_tuple(FCString::Atoi64(*Left), FCString::Atoi64(*Right));
+	});
 
-	Part1 = SolvePart1(Ranges);
-	Part2 = SolvePart2(Ranges);
+	Part1 = SolvePart1();
+	Part2 = SolvePart2();
 }
 
 void ADay02::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
