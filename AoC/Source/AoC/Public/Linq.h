@@ -63,4 +63,19 @@ namespace UnrealLinq {
 		return std::max_element(From.GetData() + startIndex, From.GetData() + endIndex) - From.GetData();
 	}
 
+	template <class _TIn, class _Fn>
+	inline _TIn MaxBy(const TArray<_TIn>& From, _Fn _Func) {
+		if (From.Num() == 0) {
+			return _TIn();
+		}
+
+		auto comp = [&_Func](const _TIn& a, const _TIn& b) {
+			// std::max_element expects comp(a,b) to be true if a < b
+			return _Func(a) < _Func(b);
+		};
+
+		auto it = std::max_element(From.GetData(), From.GetData() + From.Num(), comp);
+		return *it;
+	}
+
 }
