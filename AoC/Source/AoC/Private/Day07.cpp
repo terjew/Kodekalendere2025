@@ -1,8 +1,6 @@
 #include "Day07.h"
 #include "Util.h"
 #include "Linq.h"
-#include "Math/Int128.h"
-#include <Math/BigInt.h>
 
 ADay07::ADay07()
 {
@@ -46,7 +44,7 @@ void ADay07::BeginPlay()
 	auto root = GetRootComponent();
 	for (int y = 0; y < Height; y++)
 	{
-		Paths.Add(TArray<MyLargeInt>());
+		Paths.Add(TArray<uint64>());
 		for (int x = 0; x < Width; x++)
 		{
 			Paths.Last().Add(0);
@@ -83,7 +81,7 @@ void ADay07::BeginPlay()
 	GetWorldTimerManager().SetTimer(MyTimerHandle, this, &ADay07::Step, 0.01f, true, 3.0f);
 }
 
-void ADay07::ActivateBeam(int x, int y, MyLargeInt timelines)
+void ADay07::ActivateBeam(int x, int y, uint64 timelines)
 {
 	Data[y][x] = _T('|');
 	Paths[y][x] += timelines; //accumulate number of possible timelines leading to this beam
@@ -97,14 +95,13 @@ void ADay07::Step()
 	if (CurrentStep >= Height - 1)
 	{
 		GetWorldTimerManager().ClearTimer(MyTimerHandle);
-		MyLargeInt totalTimelines = 0;
+		uint64 totalTimelines = 0;
 
 		for (int x = 0; x < Width; x++)
 		{
 			totalTimelines += Paths[CurrentStep][x];
 		}
-		Part2 = 0;
-		HugeNumber = totalTimelines.ToString();
+		Part2 = totalTimelines;
 		return;
 	}
 
@@ -114,7 +111,7 @@ void ADay07::Step()
 
 		if (cell == _T('S') || cell == _T('|'))
 		{
-			MyLargeInt timelines = Paths[CurrentStep][x];
+			uint64 timelines = Paths[CurrentStep][x];
 			auto below = Data[CurrentStep + 1][x];
 			if (below == '^') {
 				Part1++;

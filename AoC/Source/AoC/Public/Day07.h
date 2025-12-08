@@ -1,8 +1,6 @@
 #pragma once
 
 #include "DayBase.h"
-#include "Math/Int128.h"
-#include <Math/BigInt.h>
 #include "Day07.generated.h"
 
 UCLASS()
@@ -10,8 +8,6 @@ class AOC_API ADay07 : public ADayBase
 {
 	GENERATED_BODY()
 	
-	typedef TBigInt<128, false> MyLargeInt;
-
 public:	
 	ADay07();
 
@@ -27,16 +23,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UMaterialInterface* CounterMaterial;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FString HugeNumber;
-
 protected:
 	virtual void BeginPlay() override;
 
 private:
 	TArray<UStaticMeshComponent*> Cells;
 	TArray<TArray<TCHAR>> Data;
-	TArray<TArray<MyLargeInt>> Paths;
+	TArray<TArray<uint64>> Paths;
 
 	UStaticMesh* StartMesh;
 	UStaticMesh* BeamMesh;
@@ -48,6 +41,6 @@ private:
 	virtual FString DayName() const override { return "Day07"; }
 	virtual int64 SolvePart1() override;
 	virtual int64 SolvePart2() override;
-	void ActivateBeam(int x, int y, MyLargeInt timelines);
+	void ActivateBeam(int x, int y, uint64 timelines);
 	void Step();
 };
