@@ -108,7 +108,8 @@ void ADay08::BeginPlay()
 	});
 
 	auto transform = GetActorTransform();
-	for (int i = 0; i < (UseSample ? 10 : 1000) ; ++i)
+	int i;
+	for (i = 0; i < (UseSample ? 10 : 1000) ; ++i)
 	{
 		auto shortestDistance = Distances[i];
 		int32 a = std::get<0>(shortestDistance);
@@ -124,9 +125,29 @@ void ADay08::BeginPlay()
 	auto components = FindComponents();
 
 	int product = 1;
-	for (int i = 0; i < 3; ++i)
+	for (int j = 0; j < 3; ++j)
 	{
-		product *= components[i].Num();
+		product *= components[j].Num();
 	}
 	Part1 = product;
+
+	while (true)
+	{
+		auto shortestDistance = Distances[i];
+		int32 a = std::get<0>(shortestDistance);
+		int32 b = std::get<1>(shortestDistance);
+		Vertices[a].ConnectedVertices.Add(b);
+		Vertices[b].ConnectedVertices.Add(a);
+		//draw all the connections using DrawDebugLine
+		DrawDebugLine(GetWorld(), transform.TransformPosition(Coordinates[a] * 10.0f), transform.TransformPosition(Coordinates[b] * 10.0f), FColor::Yellow, true, -1, 0, transform.GetScale3D()[0] * scale * 10);
+		Cells[a]->SetMaterial(0, ConnectedMaterial);
+		Cells[b]->SetMaterial(0, ConnectedMaterial);
+		components = FindComponents();
+		if (components.Num() == 1)
+		{
+			Part2 = Vertices[a].Position.X * Vertices[b].Position.X;
+			break;
+		}
+		i++;
+	}
 }
