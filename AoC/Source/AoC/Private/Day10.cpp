@@ -173,6 +173,10 @@ int64 SolveJolts(const ElvenMachine& Machine)
 	//Then we will move to the next button and repeat until we reach the target jolts or find that we cannot reach the target.
 	//Then we will backtrack and reduce the number of presses for the last button and try again.
 
+//From here, we could probably just model the states as a graph. Each node in the graph is the state after a certain sequence of presses. Edges are transitions, with the cost of traversing an edge being inverse of the decimal value of the button. A method can check if a node is passable by checking if it exceeds any of the criteria, if it does it and all its successors are invalid.
+
+//This coukd work with Dijkstra, but probably we can use the difference between total jolts and target jolts as the heuristic, enabling us to use A* instead...
+
 }
 
 int64 ADay10::SolvePart2()
