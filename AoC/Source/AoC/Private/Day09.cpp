@@ -44,6 +44,7 @@ int64 ADay09::SolvePart2()
 	}
 
 	int64 bestArea = 0;
+	FIntVector2 bestA, bestB;
 	for (int i = 0; i < CornerPoints.Num(); i++)
 	{
 		FIntVector2 PointA = CornerPoints[i];
@@ -106,6 +107,8 @@ int64 ADay09::SolvePart2()
 					continue;
 				}
 				bestArea = area;
+				bestA = PointA;
+				bestB = PointB;
 			}
 		}
 	}

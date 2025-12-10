@@ -10,7 +10,10 @@ class AOC_API ADayBase : public AActor
 	GENERATED_BODY()
 	
 public:	
-	ADayBase() {}
+	ADayBase() { }
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FString Day;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int64 Part1;
@@ -29,6 +32,11 @@ protected:
 		const FString DayFolder = DayName();
 		const FString Filename = UseSample ? SampleFilename : InputFilename;
 		return DayFolder / Filename;
+	}
+
+	virtual void BeginPlay() override {
+		Super::BeginPlay();
+		Day = DayName();
 	}
 
 private:

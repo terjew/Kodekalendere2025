@@ -34,8 +34,16 @@ namespace Util
 	{
 		TArray<TCHAR> Out;
 		Out.SetNum(Str.Len());
-		FMemory::Memcpy(Out.GetData(), Str.GetCharArray().GetData(), Out.Num());
+		FMemory::Memcpy(Out.GetData(), Str.GetCharArray().GetData(), Out.Num() * sizeof(FString::ElementType));
 		return Out;
+	}
+
+	inline TArray<FString> StringSplitBy(const FString& Str, const FString& Separator)
+	{
+		TArray<FString> Ret;
+		//Str.ParseIntoArray(Ret, TEXT(" "), true);
+		Str.ParseIntoArray(Ret, *Separator, true);
+		return Ret;
 	}
 
 	inline int64 Add(int64 a, int64 b)
