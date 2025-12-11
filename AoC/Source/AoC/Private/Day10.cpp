@@ -61,128 +61,138 @@ static FString toString(const Eigen::VectorXd& vec) {
 	return FString(ANSI_TO_TCHAR(ss.str().c_str()));
 }
 
-// Helper function to check if a double is close to an integer
+TArray<int32> EigenToTArrayInt(const Eigen::VectorXd& eigen_vec) {
+	TArray<int32> t_array;
+	t_array.SetNumUninitialized(eigen_vec.size());
+	for (int i = 0; i < eigen_vec.size(); ++i) {
+		t_array[i] = static_cast<int32>(FMath::RoundToDouble(eigen_vec(i)));
+	}
+	return t_array;
+}
+
 bool is_integer(double val) {
 	return FMath::Abs(val - FMath::RoundToDouble(val)) < 1e-10;
 }
 
-// Helper function to convert an Eigen vector expression to FString
-template<typename T>
-FString EigenVectorToFString(const T& vector_expr) {
-	std::stringstream ss;
-	ss << vector_expr;
-	return FString(UTF8_TO_TCHAR(ss.str().c_str()));
+TArray<TArray<int32>> iterateAndCheckSolutions_1D(const Eigen::VectorXd& x_p, const Eigen::VectorXd& K_basis) {
+	TArray<TArray<int32>> foundSolutions;
+	int N = x_p.size();
+	double c_lower_bound = std::numeric_limits<double>::lowest();
+	double c_upper_bound = std::numeric_limits<double>::max();
+	const double EPSILON = 1e-10;
+
+	for (int i = 0; i < N; ++i) {
+		double K_i = K_basis(i);
+		if (K_i > EPSILON) {
+			c_lower_bound = FMath::Max(c_lower_bound, -x_p(i) / K_i);
+		}
+		else if (K_i < -EPSILON) {
+			c_upper_bound = FMath::Min(c_upper_bound, -x_p(i) / K_i);
+		}
+	}
+
+	int c_start = FMath::CeilToInt(c_lower_bound - EPSILON);
+	int c_end = FMath::FloorToInt(c_upper_bound + EPSILON);
+	UE_LOG(LogTemp, Log, TEXT("1D Kernel: Checking optimal integer 'c' values from [%d, %d]"), c_start, c_end);
+
+	if (c_start > c_end) return foundSolutions;
+
+	for (int c = c_start; c <= c_end; ++c) {
+		Eigen::VectorXd x = x_p + (double)c * K_basis;
+		bool all_valid = true;
+		for (int i = 0; i < N; ++i) {
+			if (!is_integer(x(i)) || x(i) < -EPSILON) {
+				all_valid = false; break;
+			}
+		}
+		if (all_valid) {
+			foundSolutions.Add(EigenToTArrayInt(x));
+		}
+	}
+	UE_LOG(LogTemp, Log, TEXT("Found %d valid non-negative integer solutions in 1D case."), foundSolutions.Num());
+	return foundSolutions;
 }
 
+TArray<TArray<int32>> iterateAndCheckSolutions(const Eigen::VectorXd& x_p, const Eigen::MatrixXd& K, int32 SearchRange) {
+	int N = x_p.size();
+	int K_dims = K.cols();
+	TArray<TArray<int32>> foundSolutions;
+	std::vector<int> current_c(K_dims, -SearchRange);
+	bool done = false;
 
-// Function to handle both unique and infinite solution cases
-void solveSystemAndIterate(Eigen::MatrixXd A, Eigen::VectorXd b) {
+	UE_LOG(LogTemp, Log, TEXT("Searching a box from [%d, %d]^%d for non-negative integer solutions..."), -SearchRange, SearchRange, K_dims);
+
+	while (!done) {
+		Eigen::VectorXd x = x_p;
+		for (int k_idx = 0; k_idx < K_dims; ++k_idx) x += (double)current_c[k_idx] * K.col(k_idx);
+		bool all_valid = true;
+		for (int i = 0; i < N; ++i) {
+			if (x(i) < -1e-10 || !is_integer(x(i))) { all_valid = false; break; }
+		}
+		if (all_valid) { foundSolutions.Add(EigenToTArrayInt(x)); }
+
+		int dim_idx = K_dims - 1;
+		while (dim_idx >= 0) {
+			current_c[dim_idx]++;
+			if (current_c[dim_idx] > SearchRange) {
+				current_c[dim_idx] = -SearchRange; dim_idx--;
+			}
+			else { break; }
+		}
+		if (dim_idx < 0) done = true;
+	}
+	UE_LOG(LogTemp, Log, TEXT("Found %d valid non-negative integer solutions within search range."), foundSolutions.Num());
+	return foundSolutions;
+}
+
+TArray<TArray<int32>> solveSystemAndIterate(Eigen::MatrixXd A, Eigen::VectorXd b) {
 	Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(A);
-	int N = A.cols();
+	TArray<TArray<int32>> SolutionsList;
 
 	if (lu_decomp.isInvertible()) {
-		// --- CASE 1: UNIQUE SOLUTION ---
-		UE_LOG(LogTemp, Log, TEXT("System has a unique solution."));
+		//Only a single unique solution exists
 		Eigen::VectorXd x = lu_decomp.solve(b);
-		Eigen::IOFormat fmt(4, 0, ", ", "\n", "[", "]");
-
-		bool is_non_negative = true; // Renamed for clarity
-		bool is_int = true;
-
-		for (int i = 0; i < N; ++i) {
-			// Check if greater than or equal to 0
+		bool is_non_negative = true; bool is_int = true;
+		for (int i = 0; i < x.size(); ++i) {
 			if (x(i) < -1e-10) is_non_negative = false;
 			if (!is_integer(x(i))) is_int = false;
 		}
-
 		if (is_non_negative && is_int) {
-			FString x_str = EigenVectorToFString(x.cast<int>().format(fmt));
-			UE_LOG(LogTemp, Log, TEXT("The unique solution is a non-negative integer vector (0 allowed): %s"), *x_str);
+			SolutionsList.Add(EigenToTArrayInt(x));
+			UE_LOG(LogTemp, Log, TEXT("Found unique solution satisfying criteria."));
 		}
 		else {
-			FString x_str = EigenVectorToFString(x.format(fmt));
-			UE_LOG(LogTemp, Warning, TEXT("The unique solution does not meet non-negative integer criteria: %s"), *x_str);
+			UE_LOG(LogTemp, Error, TEXT("Unique solution did not meet non-negative integer criteria. Returning empty list."));
 		}
-
+		return SolutionsList;
 	}
-	else {
-		// --- CASE 2: INFINITE SOLUTIONS (Rank Deficient) ---
-		UE_LOG(LogTemp, Log, TEXT("System is rank deficient (infinite solutions possible)."));
 
-		Eigen::VectorXd x_p = lu_decomp.solve(b);
-		Eigen::MatrixXd K = lu_decomp.kernel();
-		Eigen::IOFormat fmt(4, 0, ", ", "\n", "[", "]");
+	Eigen::VectorXd x_p = lu_decomp.solve(b);
+	Eigen::MatrixXd K = lu_decomp.kernel();
 
-		if (!FMath::IsNearlyZero((A * x_p - b).norm(), 1e-10)) {
-			UE_LOG(LogTemp, Error, TEXT("System is inconsistent (no solution exists at all)."));
-			return;
-		}
-
-		UE_LOG(LogTemp, Log, TEXT("Finding non-negative integer solutions using 'c' iteration (0 allowed):"));
-
-		if (K.cols() != 1) {
-			UE_LOG(LogTemp, Warning, TEXT("Kernel has %d dimensions. Cannot iterate with simple 'c' range."), K.cols());
-			return;
-		}
-
-		Eigen::VectorXd K_basis = K.col(0);
-		double c_lower_bound = std::numeric_limits<double>::lowest();
-		double c_upper_bound = std::numeric_limits<double>::max();
-
-		// Calculate continuous bounds for 'c' to ensure non-negative solutions (x_i >= 0)
-		for (int i = 0; i < N; ++i) {
-			double K_i = K_basis(i);
-			// We solve the inequality: xp_i + c * K_i >= 0
-			if (K_i > 0) {
-				// c >= -xp_i / K_i
-				c_lower_bound = FMath::Max(c_lower_bound, -x_p(i) / K_i);
-			}
-			else if (K_i < 0) {
-				// c <= -xp_i / K_i (inequality flips)
-				c_upper_bound = FMath::Min(c_upper_bound, -x_p(i) / K_i);
-			}
-			// If K_i == 0, that component must satisfy x_p(i) >= 0 independently of c.
-			// If it doesn't, this entire problem has no solution meeting criteria.
-		}
-
-		// Tolerance is used here to allow c to fall exactly on the boundary that yields 0
-		int c_start = FMath::CeilToInt(c_lower_bound - 1e-10);
-		int c_end = FMath::FloorToInt(c_upper_bound + 1e-10);
-
-		UE_LOG(LogTemp, Log, TEXT("Checking integer 'c' values from [%d, %d]"), c_start, c_end);
-
-		if (c_start > c_end) {
-			UE_LOG(LogTemp, Log, TEXT("No integer 'c' values fall within the non-negative range."));
-			return;
-		}
-
-		bool found_solutions = false;
-		for (int c = c_start; c <= c_end; ++c) {
-			Eigen::VectorXd x = x_p + (double)c * K_basis;
-			bool all_integers = true;
-			bool all_non_negative = true;
-
-			for (int i = 0; i < N; ++i) {
-				if (!is_integer(x(i))) {
-					all_integers = false;
-				}
-				// Double check the non-negativity constraint after forming the final vector
-				if (x(i) < -1e-10) {
-					all_non_negative = false;
-				}
-			}
-
-			if (all_integers && all_non_negative) {
-				FString x_str = EigenVectorToFString(x.cast<int>().format(fmt));
-				UE_LOG(LogTemp, Display, TEXT("Found valid non-negative solution for c = %d: %s"), c, *x_str);
-				found_solutions = true;
-			}
-		}
-
-		if (!found_solutions) {
-			UE_LOG(LogTemp, Log, TEXT("Did not find any non-negative integer solutions for x within the integer range of c."));
-		}
+	if (!FMath::IsNearlyZero((A * x_p - b).norm(), 1e-10)) {
+		UE_LOG(LogTemp, Error, TEXT("System is inconsistent (no solution exists at all). Returning empty list."));
+		return SolutionsList;
 	}
+
+	UE_LOG(LogTemp, Log, TEXT("Kernel dimension is %d."), K.cols());
+
+	if (K.cols() == 1) {
+		return iterateAndCheckSolutions_1D(x_p, K.col(0));
+	}
+
+	double max_b_val = b.array().maxCoeff();
+	int32 search_range_heuristic = FMath::CeilToInt(max_b_val) + 5;
+
+	search_range_heuristic = FMath::Min(search_range_heuristic, 300);
+
+	SolutionsList = iterateAndCheckSolutions(x_p, K, search_range_heuristic);
+
+	if (SolutionsList.Num() == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No valid solutions found!"));
+	}
+	return SolutionsList;
 }
 
 int64 SolveJolts(const ElvenMachine& Machine)
@@ -231,16 +241,16 @@ int64 SolveJolts(const ElvenMachine& Machine)
 		b(bitIdx) = Machine.DesiredJolts[bitIdx];
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Eigen coefficients: \n%s"), *toString(A));
-	UE_LOG(LogTemp, Warning, TEXT("Eigen constants: \n%s"), *toString(b));
+	UE_LOG(LogTemp, Log, TEXT("A:\n%s"), *toString(A));
+	UE_LOG(LogTemp, Log, TEXT("b:\n%s"), *toString(b));
 
-	// Solve for x
-	Eigen::VectorXd x = A.fullPivLu().solve(b);
-	UE_LOG(LogTemp, Warning, TEXT("Eigen solved: \n%s"), *toString(x));
-
-	solveSystemAndIterate(A, b);
+	TArray<TArray<int>> solutions = solveSystemAndIterate(A, b);
 	
-	return -1;
+	auto best = UnrealLinq::MinBy(solutions, [](const TArray<int>& solution) {
+		return UnrealLinq::Sum(solution);
+	});
+
+	return UnrealLinq::Sum(best);
 }
 
 int64 ADay10::SolvePart2()
@@ -289,6 +299,6 @@ void ADay10::BeginPlay()
 		}
 	}		
 
-	//Part1 = SolvePart1();
+	Part1 = SolvePart1();
 	Part2 = SolvePart2();
 }

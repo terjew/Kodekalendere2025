@@ -33,7 +33,6 @@ struct MachineState
 	TArray<bool> CurrentState;
 	TArray<int> ButtonsPressed;
 	TArray<int> JoltsGenerated;
-	int totalJolts = 0;
 
 	MachineState PressButton(const ElvenMachine & MachineDefinition, int ButtonNo) const
 	{
@@ -42,31 +41,13 @@ struct MachineState
 		{
 			NextState.CurrentState[idx] = !NextState.CurrentState[idx];
 			NextState.JoltsGenerated[idx] += 1;
-			NextState.totalJolts += (1 << idx);
 		}
 		NextState.ButtonsPressed[ButtonNo]++;
 		return NextState;
 	}
 
-	bool IsValidJolts(const ElvenMachine& machineDefinition, TArray<TArray<int64>> CoefficientMatrix) const
+	bool IsValidJolts(const ElvenMachine& machineDefinition) const
 	{
-		if (totalJolts > machineDefinition.TargetTotalJolts)
-		{
-			return false;
-		}
-		for (int coeffIdx = 0; coeffIdx < CoefficientMatrix.Num(); coeffIdx++)
-		{
-			int64 leftSide = 0;
-			for (int buttonNo = 0; buttonNo < machineDefinition.Buttons.Num(); buttonNo++)
-			{
-				leftSide += CoefficientMatrix[coeffIdx][buttonNo] * ButtonsPressed[buttonNo];
-			}
-			if (leftSide > CoefficientMatrix[coeffIdx].Last())
-			{
-				return false;
-			}
-		}
-
 		for (int i = 0; i < machineDefinition.DesiredJolts.Num(); i++)
 		{
 			if (JoltsGenerated[i] > machineDefinition.DesiredJolts[i])
