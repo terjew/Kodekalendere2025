@@ -78,4 +78,13 @@ namespace UnrealLinq {
 		return *it;
 	}
 
+
+	template <class _TIn>
+	inline _TIn Sum(const TArray<_TIn>& From) {
+		return std::accumulate(From.GetData(), From.GetData() + From.Num(), _TIn(), [&](const _TIn& a, const _TIn& b) {
+			return a + b;
+		});
+	}
+
+
 }
